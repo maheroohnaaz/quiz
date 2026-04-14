@@ -14,13 +14,11 @@ body{
   background: radial-gradient(circle,#001f3f,#000);
 }
 
-/* LOGO */
 .logo{
   width:100px;
   margin:15px auto;
 }
 
-/* HEADING (FIXED) */
 .heading{
   font-size:24px;
   font-weight:bold;
@@ -29,7 +27,6 @@ body{
   margin-bottom:15px;
 }
 
-/* PANEL */
 .panel{
   width:95%;
   max-width:900px;
@@ -40,7 +37,6 @@ body{
   box-shadow:0 0 25px #00eaff;
 }
 
-/* QUESTION */
 .question-box{
   border:3px solid gold;
   border-radius:20px;
@@ -49,7 +45,6 @@ body{
   font-size:22px;
 }
 
-/* OPTIONS */
 .options{
   display:grid;
   grid-template-columns:1fr 1fr;
@@ -78,7 +73,6 @@ body{
   100%{opacity:1;}
 }
 
-/* BUTTON */
 button{
   padding:10px;
   margin:10px;
@@ -90,13 +84,11 @@ button{
   cursor:pointer;
 }
 
-/* LEADERBOARD */
 li{
   list-style:none;
   font-size:18px;
 }
 
-/* MOBILE */
 @media(max-width:600px){
   .options{grid-template-columns:1fr;}
 }
@@ -115,6 +107,9 @@ li{
 <input id="name" placeholder="Enter Name">
 <br>
 <button onclick="startQuiz()">Start</button>
+
+<!-- 🔄 RESET -->
+<button onclick="resetAll()">Reset Game</button>
 
 <!-- 🏆 LEADERBOARD -->
 <h3>🏆 Leaderboard</h3>
@@ -185,9 +180,8 @@ selected=index;
 function lockAnswer(){
 if(selected===null) return alert("Option select karo");
 
-// 🔊 LOCK SOUND
-let lock = document.getElementById("lockSound");
-lock.currentTime = 0;
+let lock=document.getElementById("lockSound");
+lock.currentTime=0;
 lock.play();
 
 let all=document.querySelectorAll(".option");
@@ -201,19 +195,17 @@ setTimeout(()=>{
 all[correct].classList.remove("blink");
 all[correct].classList.add("correct");
 
-// 🔥 FIXED SOUND
 if(selected===correct){
-let c = document.getElementById("correctSound");
-c.currentTime = 0;
+let c=document.getElementById("correctSound");
+c.currentTime=0;
 c.play();
 }else{
 all[selected].classList.add("wrong");
-let w = document.getElementById("wrongSound");
-w.currentTime = 0;
+let w=document.getElementById("wrongSound");
+w.currentTime=0;
 w.play();
 }
 
-// SCORE SAVE
 let score=(selected===correct)?1:0;
 data.push({name,score});
 localStorage.setItem("kbc",JSON.stringify(data));
@@ -244,15 +236,21 @@ html+=`<li>${rank} ${p.name} - ${p.score}</li>`;
 document.getElementById("leaderboard").innerHTML=html;
 }
 
-/* NAME AUTO CAPITAL */
+/* 🔄 RESET */
+function resetAll(){
+localStorage.clear();
+location.reload();
+}
+
+/* 🔤 AUTO CAPITAL */
 document.getElementById("name").addEventListener("input", function(e){
-let words = e.target.value.toLowerCase().split(" ");
+let words=e.target.value.toLowerCase().split(" ");
 for(let i=0;i<words.length;i++){
 if(words[i]){
 words[i]=words[i][0].toUpperCase()+words[i].slice(1);
 }
 }
-e.target.value = words.join(" ");
+e.target.value=words.join(" ");
 });
 
 show();
