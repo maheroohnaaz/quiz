@@ -40,7 +40,7 @@ body{
   font-size:22px;
 }
 
-/* OPTIONS */
+/* OPTIONS GRID */
 .options{
   display:grid;
   grid-template-columns:1fr 1fr;
@@ -56,10 +56,17 @@ body{
   cursor:pointer;
 }
 
-.correct{background:green !important;}
-.wrong{background:red !important;}
+.correct{
+  background:green !important;
+  box-shadow:0 0 20px lime;
+}
 
-/* BLINK EFFECT */
+.wrong{
+  background:red !important;
+  box-shadow:0 0 20px red;
+}
+
+/* BLINK */
 @keyframes blink{
   0%{opacity:1;}
   50%{opacity:0.3;}
@@ -70,14 +77,31 @@ body{
   animation:blink 0.6s infinite;
 }
 
-/* BUTTON */
+/* BUTTON (BLUE NEON) */
 button{
-  padding:10px;
+  padding:10px 15px;
   margin:10px;
-  border:none;
   border-radius:10px;
-  background:gold;
+  border:2px solid #00eaff;
+  background:#001f3f;
+  color:white;
+  box-shadow:0 0 10px #00eaff;
   cursor:pointer;
+}
+
+button:hover{
+  box-shadow:0 0 20px #00eaff;
+}
+
+/* LEADERBOARD */
+li{
+  list-style:none;
+  font-size:18px;
+}
+
+/* MOBILE */
+@media(max-width:600px){
+  .options{grid-template-columns:1fr;}
 }
 </style>
 </head>
@@ -99,25 +123,26 @@ button{
 
 <div class="options" id="options"></div>
 
-<!-- 🔥 LIFELINES -->
 <button onclick="fifty()">50:50</button>
 <button onclick="lockAnswer()">🔒 Lock</button>
-
 <br>
 <button onclick="next()">Next</button>
 </div>
 
 <div id="result">
-<h2>🏆 Leaderboard</h2>
+<h2>Islamic Children Academy Entrance Test</h2>
+<h3>🏆 Leaderboard</h3>
 <ul id="leaderboard"></ul>
+
+<button onclick="resetAll()">🔄 Reset Game</button>
 </div>
 
 </div>
 
-<!-- 🔊 SOUND -->
-<audio id="lockSound">
-<source src="https://www.soundjay.com/buttons/sounds/button-16.mp3">
-</audio>
+<!-- 🔊 SOUNDS -->
+<audio id="lockSound" src="lock.mp3"></audio>
+<audio id="correctSound" src="correct.mp3"></audio>
+<audio id="wrongSound" src="wrong.mp3"></audio>
 
 <script>
 let quiz=[
@@ -141,6 +166,7 @@ loadQ();
 
 function loadQ(){
 selected=null;
+
 document.getElementById("question").innerText=quiz[i].q;
 
 let html="";
@@ -164,27 +190,33 @@ selected=index;
 function lockAnswer(){
 if(selected===null) return alert("Option select karo");
 
+// 🔊 LOCK SOUND
 document.getElementById("lockSound").play();
 
 let all=document.querySelectorAll(".option");
-
 all.forEach(o=>o.onclick=null);
 
 let correct=quiz[i].answer;
 
+// BLINK
 all[correct].classList.add("blink");
 
 setTimeout(()=>{
 all[correct].classList.remove("blink");
 all[correct].classList.add("correct");
 
-if(selected!==correct){
+// 🔊 CORRECT / WRONG SOUND
+if(selected===correct){
+document.getElementById("correctSound").play();
+}else{
 all[selected].classList.add("wrong");
+document.getElementById("wrongSound").play();
 }
 
-let score = (selected===correct)?1:0;
+let score=(selected===correct)?1:0;
 data.push({name,score});
 localStorage.setItem("kbc",JSON.stringify(data));
+
 show();
 
 },2000);
@@ -195,7 +227,6 @@ let correct=quiz[i].answer;
 let all=document.querySelectorAll(".option");
 
 let removed=0;
-
 all.forEach((opt,index)=>{
 if(index!==correct && removed<2){
 opt.style.display="none";
@@ -223,6 +254,11 @@ html+=`<li>${rank} ${p.name} - ${p.score}</li>`;
 });
 
 document.getElementById("leaderboard").innerHTML=html;
+}
+
+function resetAll(){
+localStorage.clear();
+location.reload();
 }
 
 show();
