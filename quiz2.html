@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Islamic Children Academy Quiz</title>
+
+<style>
+body {
+  font-family: Arial;
+  text-align: center;
+  color: white;
+
+  /* ✅ FIXED BACKGROUND */
+  background: url('bg.png') no-repeat center center fixed;
+  background-size: cover;
+}
+
+/* DARK OVERLAY */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.6);
+  z-index: -1;
+}
+
+/* HEADER */
+.header h1 {
+  margin: 10px;
+  font-size: 35px;
+  color: #ffd700;
+}
+
+.header h2 {
+  margin: 0;
+}
+
+/* LOGO FIX */
+.logo {
+  width: 120px;
+  margin: 10px auto;
+  display: block;
+}
+
+/* BOX */
+.glass {
+  background: rgba(0,0,0,0.6);
+  padding: 20px;
+  border-radius: 15px;
+  display: inline-block;
+  margin-top: 20px;
+}
+
+/* OPTIONS */
+.option {
+  margin: 10px auto;
+  padding: 15px;
+  width: 300px;
+  background: rgba(0,0,0,0.7);
+  cursor: pointer;
+  border-radius: 10px;
+}
+
+.option:hover {
+  background: rgba(255,255,255,0.2);
+}
+
+.correct { background: green !important; }
+.wrong { background: red !important; }
+
+button, input {
+  padding: 10px;
+  margin: 10px;
+  border: none;
+  border-radius: 5px;
+}
+
+button {
+  background: gold;
+  cursor: pointer;
+}
+
+li {
+  list-style: none;
+  font-size: 20px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+  <h1>Islamic Children Academy</h1>
+  <h2>Entrance Test</h2>
+
+  <!-- ✅ LOGO FIXED -->
+  <img src="logo.png" class="logo">
+</div>
+
+<!-- START -->
+<div id="start" class="glass">
+  <input id="name" placeholder="Enter Student Name">
+  <br>
+  <button onclick="startQuiz()">Start</button>
+</div>
+
+<!-- QUIZ -->
+<div id="quiz" style="display:none;" class="glass">
+  <h2 id="question"></h2>
+  <div id="options"></div>
+  <button onclick="nextStudent()">Next Student</button>
+</div>
+
+<!-- RESULT -->
+<div id="result" class="glass">
+  <h2>🏆 Leaderboard</h2>
+  <ul id="leaderboard"></ul>
+  <button onclick="clearData()">Reset</button>
+</div>
+
+<script>
+let quiz = [
+  { q: "भारत की राजधानी क्या है?", options: ["मुंबई","दिल्ली","चेन्नई","कोलकाता"], answer: 1 },
+  { q: "2 + 2 = ?", options: ["3","4","5","6"], answer: 1 },
+  { q: "भारत का राष्ट्रीय पशु?", options: ["शेर","बाघ","हाथी","घोड़ा"], answer: 1 }
+];
+
+let index = 0;
+let currentStudent = "";
+let leaderboard = JSON.parse(localStorage.getItem("leaderboard")) || [];
+
+function startQuiz() {
+  currentStudent = document.getElementById("name").value;
+  if(currentStudent === "") return alert("Name likho!");
+
+  document.getElementById("start").style.display = "none";
+  document.getElementById("quiz").style.display = "block";
+
+  loadQ();
+}
+
+function loadQ() {
+  if(index >= quiz.length){
+    index = 0;
+  }
+
+  document.getElementById("question").innerText = quiz[index].q;
+
+  let html = "";
+  quiz[index].options.forEach((opt,i)=>{
+    html += `<div class="option" onclick="check(this, ${i})">${opt}</div>`;
+  });
+
+  document.getElementById("options").innerHTML = html;
+}
+
+function check(el, i) {
+  let options = document.querySelectorAll(".option");
+  options.forEach(opt => opt.onclick = null);
+
+  let score = 0;
+
+  if(i === quiz[index].answer){
+    el.classList.add("correct");
+    score = 1;
+  } else {
+    el.classList.add("wrong");
+  }
+
+  leaderboard.push({name: currentStudent, score: score});
+  localStorage.setItem("leaderboard", JSON.stringify(leaderboard));
+
+  showLeaderboard();
+}
+
+function nextStudent() {
+  index++;
+  document.getElementById("name").value = "";
+  document.getElementById("start").style.display = "block";
+  document.getElementById("quiz").style.display = "none";
+}
+
+function showLeaderboard() {
+  leaderboard.sort((a,b)=>b.score-a.score);
+
+  let list = "";
+  leaderboard.forEach((p,i)=>{
+    let rank = i==0?"🥇":i==1?"🥈":i==2?"🥉":(i+1);
+    list += `<li>${rank} ${p.name} - ${p.score}</li>`;
+  });
+
+  document.getElementById("leaderboard").innerHTML = list;
+}
+
+showLeaderboard();
+
+function clearData(){
+  localStorage.clear();
+  location.reload();
+}
+</script>
+
+</body>
+</html>
