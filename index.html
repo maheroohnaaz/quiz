@@ -5,120 +5,79 @@
 <title>KBC Quiz</title>
 
 <style>
-*{
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
+*{margin:0;padding:0;box-sizing:border-box;}
+
+body{
+  font-family:Arial;
+  color:white;
+  text-align:center;
+  background: radial-gradient(circle,#001f3f,#000);
 }
 
-body {
-  font-family: Arial;
-  text-align: center;
-  color: white;
-
-  /* FULL BACKGROUND IMAGE */
-  background: url("bg.png") no-repeat center center/cover;
-  height:100vh;
+/* LOGO */
+.logo{
+  width:100px;
+  margin:10px auto;
 }
 
-/* OVERLAY (dark effect) */
-body::before{
-  content:"";
-  position:fixed;
-  top:0; left:0;
-  width:100%;
-  height:100%;
-  background:rgba(0,0,0,0.6);
-  z-index:-1;
-}
-
-/* LOGO TOP */
-.logo {
-  width:120px;
-  margin:20px auto;
-  display:block;
-}
-
-/* TITLE */
-h1 {
-  color: gold;
-  text-shadow: 0 0 10px gold;
-  font-size: 28px;
-}
-
-/* CENTER BOX */
-.container {
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  height:80vh;
+/* PANEL */
+.panel{
+  width:95%;
+  max-width:900px;
+  margin:auto;
+  padding:20px;
+  border:3px solid #00eaff;
+  border-radius:20px;
+  box-shadow:0 0 25px #00eaff;
 }
 
 /* QUESTION */
-.question {
-  font-size: 22px;
-  margin-bottom: 20px;
+.question-box{
+  border:3px solid gold;
+  border-radius:20px;
+  padding:20px;
+  margin-bottom:20px;
+  font-size:22px;
 }
 
 /* OPTIONS */
-.option {
-  width:90%;
-  max-width:400px;
-  margin:10px;
-  padding:12px;
+.options{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:15px;
+}
+
+.option{
+  padding:15px;
   border-radius:30px;
   border:2px solid #00eaff;
   background:#001f3f;
   box-shadow:0 0 10px #00eaff;
   cursor:pointer;
-  transition:0.3s;
 }
 
-.option:hover {
-  transform:scale(1.05);
+.correct{background:green !important;}
+.wrong{background:red !important;}
+
+/* BLINK EFFECT */
+@keyframes blink{
+  0%{opacity:1;}
+  50%{opacity:0.3;}
+  100%{opacity:1;}
 }
 
-.correct {
-  background:green !important;
-  box-shadow:0 0 20px lime;
+.blink{
+  animation:blink 0.6s infinite;
 }
 
-.wrong {
-  background:red !important;
-  box-shadow:0 0 20px red;
-}
-
-/* INPUT + BUTTON */
-input, button {
+/* BUTTON */
+button{
   padding:10px;
-  font-size:16px;
-  border-radius:10px;
+  margin:10px;
   border:none;
-  margin:5px;
-}
-
-button {
+  border-radius:10px;
   background:gold;
   cursor:pointer;
-}
-
-/* LEADERBOARD */
-#leaderboard {
-  margin-top:20px;
-}
-
-li {
-  list-style:none;
-  font-size:18px;
-}
-
-/* 📱 MOBILE RESPONSIVE */
-@media (max-width:600px){
-  h1{font-size:20px;}
-  .question{font-size:18px;}
-  .option{font-size:14px;}
-  .logo{width:90px;}
 }
 </style>
 </head>
@@ -127,100 +86,143 @@ li {
 
 <img src="logo.png" class="logo">
 
-<h1>Entrance Test</h1>
-
-<div class="container">
+<div class="panel">
 
 <div id="start">
-  <input id="name" placeholder="Enter Name">
-  <br>
-  <button onclick="startQuiz()">Start</button>
+<input id="name" placeholder="Enter Name">
+<br>
+<button onclick="startQuiz()">Start</button>
 </div>
 
 <div id="quiz" style="display:none;">
-  <div class="question" id="question"></div>
-  <div id="options"></div>
-  <button onclick="next()">Next</button>
+<div class="question-box" id="question"></div>
+
+<div class="options" id="options"></div>
+
+<!-- 🔥 LIFELINES -->
+<button onclick="fifty()">50:50</button>
+<button onclick="lockAnswer()">🔒 Lock</button>
+
+<br>
+<button onclick="next()">Next</button>
 </div>
 
 <div id="result">
-  <h2>🏆 Leaderboard</h2>
-  <ul id="leaderboard"></ul>
+<h2>🏆 Leaderboard</h2>
+<ul id="leaderboard"></ul>
 </div>
 
 </div>
+
+<!-- 🔊 SOUND -->
+<audio id="lockSound">
+<source src="https://www.soundjay.com/buttons/sounds/button-16.mp3">
+</audio>
 
 <script>
-let quiz = [
-  {q:"भारत की राजधानी?", options:["मुंबई","दिल्ली","चेन्नई","कोलकाता"], answer:1},
-  {q:"5 + 5 ?", options:["8","10","12","15"], answer:1}
+let quiz=[
+{q:"भारत की राजधानी?", options:["मुंबई","दिल्ली","चेन्नई","कोलकाता"], answer:1},
+{q:"5+5?", options:["8","10","12","15"], answer:1}
 ];
 
-let i=0;
-let name="";
-let data = JSON.parse(localStorage.getItem("kbc")) || [];
+let i=0,name="";
+let selected=null;
+let data=JSON.parse(localStorage.getItem("kbc"))||[];
 
 function startQuiz(){
-  name = document.getElementById("name").value;
-  if(!name) return alert("Name likho");
+name=document.getElementById("name").value;
+if(!name) return alert("Name likho");
 
-  document.getElementById("start").style.display="none";
-  document.getElementById("quiz").style.display="block";
+document.getElementById("start").style.display="none";
+document.getElementById("quiz").style.display="block";
 
-  loadQ();
+loadQ();
 }
 
 function loadQ(){
-  document.getElementById("question").innerText = quiz[i].q;
+selected=null;
+document.getElementById("question").innerText=quiz[i].q;
 
-  let html="";
-  quiz[i].options.forEach((opt,index)=>{
-    html += `<div class="option" onclick="check(this,${index})">
-      ${String.fromCharCode(65+index)}. ${opt}
-    </div>`;
-  });
+let html="";
+quiz[i].options.forEach((opt,index)=>{
+html+=`<div class="option" onclick="select(this,${index})">
+${String.fromCharCode(65+index)}. ${opt}
+</div>`;
+});
 
-  document.getElementById("options").innerHTML = html;
+document.getElementById("options").innerHTML=html;
 }
 
-function check(el,ans){
-  let all=document.querySelectorAll(".option");
-  all.forEach(o=>o.onclick=null);
+function select(el,index){
+let all=document.querySelectorAll(".option");
+all.forEach(o=>o.style.background="#001f3f");
 
-  let score=0;
+el.style.background="#333";
+selected=index;
+}
 
-  if(ans===quiz[i].answer){
-    el.classList.add("correct");
-    score=1;
-  }else{
-    el.classList.add("wrong");
-  }
+function lockAnswer(){
+if(selected===null) return alert("Option select karo");
 
-  data.push({name,score});
-  localStorage.setItem("kbc",JSON.stringify(data));
+document.getElementById("lockSound").play();
 
-  show();
+let all=document.querySelectorAll(".option");
+
+all.forEach(o=>o.onclick=null);
+
+let correct=quiz[i].answer;
+
+all[correct].classList.add("blink");
+
+setTimeout(()=>{
+all[correct].classList.remove("blink");
+all[correct].classList.add("correct");
+
+if(selected!==correct){
+all[selected].classList.add("wrong");
+}
+
+let score = (selected===correct)?1:0;
+data.push({name,score});
+localStorage.setItem("kbc",JSON.stringify(data));
+show();
+
+},2000);
+}
+
+function fifty(){
+let correct=quiz[i].answer;
+let all=document.querySelectorAll(".option");
+
+let removed=0;
+
+all.forEach((opt,index)=>{
+if(index!==correct && removed<2){
+opt.style.display="none";
+removed++;
+}
+});
 }
 
 function next(){
-  i++;
-  if(i>=quiz.length) i=0;
+i++;
+if(i>=quiz.length) i=0;
 
-  document.getElementById("start").style.display="block";
-  document.getElementById("quiz").style.display="none";
-  document.getElementById("name").value="";
+document.getElementById("start").style.display="block";
+document.getElementById("quiz").style.display="none";
+document.getElementById("name").value="";
 }
 
 function show(){
-  data.sort((a,b)=>b.score-a.score);
+data.sort((a,b)=>b.score-a.score);
 
-  let html="";
-  data.forEach((p,index)=>{
-    let rank = index==0?"🥇":index==1?"🥈":index==2?"🥉":index+1;
-    html+=`<li>${rank} ${p.name} - ${p.score}</li>`;
-  });
+let html="";
+data.forEach((p,index)=>{
+let rank=index==0?"🥇":index==1?"🥈":index==2?"🥉":index+1;
+html+=`<li>${rank} ${p.name} - ${p.score}</li>`;
+});
 
-  document.getElementById("leaderboard").innerHTML = html;
+document.getElementById("leaderboard").innerHTML=html;
 }
 
 show();
