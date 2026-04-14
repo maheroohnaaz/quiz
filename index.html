@@ -17,7 +17,14 @@ body{
 /* LOGO */
 .logo{
   width:100px;
-  margin:10px auto;
+  margin:15px auto;
+}
+
+/* HEADING */
+.heading{
+  font-size:22px;
+  margin-bottom:15px;
+  color:gold;
 }
 
 /* PANEL */
@@ -40,7 +47,7 @@ body{
   font-size:22px;
 }
 
-/* OPTIONS GRID */
+/* OPTIONS */
 .options{
   display:grid;
   grid-template-columns:1fr 1fr;
@@ -56,30 +63,22 @@ body{
   cursor:pointer;
 }
 
-.correct{
-  background:green !important;
-  box-shadow:0 0 20px lime;
+.correct{background:green !important;}
+.wrong{background:red !important;}
+
+.blink{
+  animation:blink 0.6s infinite;
 }
 
-.wrong{
-  background:red !important;
-  box-shadow:0 0 20px red;
-}
-
-/* BLINK */
 @keyframes blink{
   0%{opacity:1;}
   50%{opacity:0.3;}
   100%{opacity:1;}
 }
 
-.blink{
-  animation:blink 0.6s infinite;
-}
-
-/* BUTTON (BLUE NEON) */
+/* BUTTON */
 button{
-  padding:10px 15px;
+  padding:10px;
   margin:10px;
   border-radius:10px;
   border:2px solid #00eaff;
@@ -87,16 +86,6 @@ button{
   color:white;
   box-shadow:0 0 10px #00eaff;
   cursor:pointer;
-}
-
-button:hover{
-  box-shadow:0 0 20px #00eaff;
-}
-
-/* LEADERBOARD */
-li{
-  list-style:none;
-  font-size:18px;
 }
 
 /* MOBILE */
@@ -108,34 +97,31 @@ li{
 
 <body>
 
+<!-- LOGO -->
 <img src="logo.png" class="logo">
 
-<div class="panel">
+<!-- FIRST PAGE -->
+<div id="start" class="panel">
 
-<div id="start">
+<div class="heading">Islamic Children Academy Entrance Test</div>
+
 <input id="name" placeholder="Enter Name">
 <br>
 <button onclick="startQuiz()">Start</button>
+
 </div>
 
-<div id="quiz" style="display:none;">
+<!-- QUIZ PAGE -->
+<div id="quiz" class="panel" style="display:none;">
+
+<img src="logo.png" class="logo">
+
 <div class="question-box" id="question"></div>
 
 <div class="options" id="options"></div>
 
-<button onclick="fifty()">50:50</button>
 <button onclick="lockAnswer()">🔒 Lock</button>
-<br>
 <button onclick="next()">Next</button>
-</div>
-
-<div id="result">
-<h2>Islamic Children Academy Entrance Test</h2>
-<h3>🏆 Leaderboard</h3>
-<ul id="leaderboard"></ul>
-
-<button onclick="resetAll()">🔄 Reset Game</button>
-</div>
 
 </div>
 
@@ -152,7 +138,6 @@ let quiz=[
 
 let i=0,name="";
 let selected=null;
-let data=JSON.parse(localStorage.getItem("kbc"))||[];
 
 function startQuiz(){
 name=document.getElementById("name").value;
@@ -190,7 +175,6 @@ selected=index;
 function lockAnswer(){
 if(selected===null) return alert("Option select karo");
 
-// 🔊 LOCK SOUND
 document.getElementById("lockSound").play();
 
 let all=document.querySelectorAll(".option");
@@ -198,14 +182,12 @@ all.forEach(o=>o.onclick=null);
 
 let correct=quiz[i].answer;
 
-// BLINK
 all[correct].classList.add("blink");
 
 setTimeout(()=>{
 all[correct].classList.remove("blink");
 all[correct].classList.add("correct");
 
-// 🔊 CORRECT / WRONG SOUND
 if(selected===correct){
 document.getElementById("correctSound").play();
 }else{
@@ -213,55 +195,28 @@ all[selected].classList.add("wrong");
 document.getElementById("wrongSound").play();
 }
 
-let score=(selected===correct)?1:0;
-data.push({name,score});
-localStorage.setItem("kbc",JSON.stringify(data));
-
-show();
-
 },2000);
-}
-
-function fifty(){
-let correct=quiz[i].answer;
-let all=document.querySelectorAll(".option");
-
-let removed=0;
-all.forEach((opt,index)=>{
-if(index!==correct && removed<2){
-opt.style.display="none";
-removed++;
-}
-});
 }
 
 function next(){
 i++;
 if(i>=quiz.length) i=0;
 
-document.getElementById("start").style.display="block";
 document.getElementById("quiz").style.display="none";
+document.getElementById("start").style.display="block";
 document.getElementById("name").value="";
 }
 
-function show(){
-data.sort((a,b)=>b.score-a.score);
-
-let html="";
-data.forEach((p,index)=>{
-let rank=index==0?"🥇":index==1?"🥈":index==2?"🥉":index+1;
-html+=`<li>${rank} ${p.name} - ${p.score}</li>`;
+/* 🔥 NAME AUTO CAPITAL */
+document.getElementById("name").addEventListener("input", function(e){
+let words = e.target.value.toLowerCase().split(" ");
+for(let i=0;i<words.length;i++){
+if(words[i]){
+words[i]=words[i][0].toUpperCase()+words[i].slice(1);
+}
+}
+e.target.value = words.join(" ");
 });
-
-document.getElementById("leaderboard").innerHTML=html;
-}
-
-function resetAll(){
-localStorage.clear();
-location.reload();
-}
-
-show();
 </script>
 
 </body>
